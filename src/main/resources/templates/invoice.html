@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Printable sales invoice for Pharmacy Management System.">
+    <meta name="keywords" content="pharmacy invoice, medicine bill, sales invoice">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Invoice | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/sell-billing.css}">
+</head>
+<body>
+
+<main class="invoice-page">
+
+    <div class="invoice-actions no-print">
+        <a th:href="@{/sell-billing}" class="finish-btn">Back to Billing</a>
+        <button type="button" onclick="window.print()" class="print-btn-page">Print Bill</button>
+    </div>
+
+    <div class="bill-paper printable-invoice" id="printArea">
+
+        <div class="bill-top">
+            <img th:src="@{/logo.png}" alt="Logo">
+            <div>
+                <h2>Pharmacy Management System</h2>
+                <p>Professional Medicine Store</p>
+            </div>
+        </div>
+
+        <div class="bill-title">
+            <h3>Sales Invoice</h3>
+        </div>
+
+        <div class="bill-info">
+            <div>
+                <p>
+                    <strong>Bill No:</strong>
+                    <span th:text="${sale.invoiceNo}">INV-000</span>
+                </p>
+
+                <p>
+                    <strong>Customer:</strong>
+                    <span th:text="${sale.customerName}">Customer Name</span>
+                </p>
+
+                <p>
+                    <strong>Phone:</strong>
+                    <span th:text="${sale.customerPhone}">Phone</span>
+                </p>
+            </div>
+
+            <div>
+                <p><strong>Date & Time:</strong></p>
+                <p th:text="${#temporals.format(sale.saleDateTime, 'dd MMM yyyy, hh:mm a')}">
+                    Date Time
+                </p>
+            </div>
+        </div>
+
+        <table class="bill-table">
+            <thead>
+            <tr>
+                <th>SL</th>
+                <th>Medicine</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:if="${sale.items == null or #lists.isEmpty(sale.items)}">
+                <td colspan="5" style="text-align:center;">No item found in this invoice.</td>
+            </tr>
+
+            <tr th:each="item, stat : ${sale.items}">
+                <td th:text="${stat.count}">1</td>
+
+                <td>
+                    <strong th:text="${item.medicineName}">Medicine Name</strong><br>
+                    <small>
+                        Batch:
+                        <span th:text="${item.batchNo}">Batch</span>
+                    </small>
+                </td>
+
+                <td th:text="${item.quantity}">1</td>
+
+                <td>
+                    ৳<span th:text="${item.unitPrice}">0.00</span>
+                </td>
+
+                <td>
+                    ৳<span th:text="${item.lineTotal}">0.00</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="bill-total">
+            <span>Grand Total</span>
+            <strong>
+                ৳<span th:text="${sale.grandTotal}">0.00</span>
+            </strong>
+        </div>
+
+        <div class="bill-footer">
+            <p>Thank you for purchasing from us.</p>
+            <small>This is a computer generated invoice.</small>
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

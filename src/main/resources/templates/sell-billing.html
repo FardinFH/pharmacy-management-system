@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Sell medicine, add medicine to bill, create invoice and update pharmacy stock.">
+    <meta name="keywords" content="pharmacy billing, sell medicine, medicine invoice, pharmacy management system">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sell & Billing | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/sell-billing.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <img th:src="@{/logo.png}" alt="Logo">
+        <div>
+            <h2>Pharmacy Management System</h2>
+            <span>Sell & Billing</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li><a th:href="@{/dashboard}">Home</a></li>
+        <li><a th:href="@{/add-medicine}">Add Medicine</a></li>
+        <li><a th:href="@{/stock}">Stock</a></li>
+        <li><a th:href="@{/sell-billing}" class="active">Sell & Billing</a></li>
+        <li><a th:href="@{/sell}">Selling History</a></li>
+    </ul>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main class="page-container">
+
+    <section class="page-header">
+        <div>
+            <h1>Sell & Billing</h1>
+            <p>Select medicine, enter quantity, add to bill and generate printable invoice.</p>
+        </div>
+
+        <div class="date-time-box">
+            <span>Selling Date & Time</span>
+            <strong id="currentDateTime" th:text="${#temporals.format(now, 'dd MMM yyyy, hh:mm a')}">
+                Date Time
+            </strong>
+        </div>
+    </section>
+
+    <p th:if="${successMessage}" th:text="${successMessage}" class="message success"></p>
+    <p th:if="${errorMessage}" th:text="${errorMessage}" class="message error"></p>
+
+    <section class="billing-layout">
+
+        <!-- Left Side -->
+        <div class="left-section">
+
+            <!-- Medicine Selection -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Select Medicine</h2>
+                    <p>Choose medicine from available stock.</p>
+                </div>
+
+                <form th:action="@{/sell-billing/cart/add}" th:object="${addToCartRequest}" method="post">
+                    <div class="sell-form">
+                        <div class="input-group">
+                            <label for="medicineSelect">Medicine *</label>
+                            <select id="medicineSelect" th:field="*{medicineId}" required>
+                                <option value="">Select Medicine</option>
+                                <option th:each="medicine : ${medicines}"
+                                        th:value="${medicine.id}"
+                                        th:text="${medicine.medicineName + ' - ৳' + medicine.sellingPrice + ' / pcs'}">
+                                    Select Medicine
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="sellQuantity">Quantity *</label>
+                            <input type="number"
+                                   id="sellQuantity"
+                                   th:field="*{quantity}"
+                                   min="1"
+                                   placeholder="Enter quantity"
+                                   required>
+                        </div>
+
+                        <button type="submit" class="add-medicine-btn">Add Medicine</button>
+                    </div>
+                </form>
+
+                <div id="selectedMedicineInfo" class="selected-info">
+                    <p th:if="${selectedMedicine == null}">
+                        Select a medicine from the table, then enter quantity and click Add Medicine.
+                    </p>
+
+                    <p th:if="${selectedMedicine != null}">
+                        Selected:
+                        <strong th:text="${selectedMedicine.medicineName}">Medicine</strong>
+                        |
+                        Stock:
+                        <span th:text="${selectedMedicine.quantity}">0</span> pcs
+                        |
+                        Price: ৳<span th:text="${selectedMedicine.sellingPrice}">0.00</span> per pcs
+                        |
+                        Expiry:
+                        <span th:text="${selectedMedicine.expiryDate}">Date</span>
+                    </p>
+                </div>
+
+                <p id="message" class="message"></p>
+            </div>
+
+            <!-- Medicine Table -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Available Medicines</h2>
+                    <p>Click Select to choose a medicine, then enter quantity above.</p>
+                </div>
+
+                <form th:action="@{/sell-billing}" method="get">
+                    <div class="search-box">
+                        <input type="text"
+                               id="searchInput"
+                               name="keyword"
+                               th:value="${keyword}"
+                               placeholder="Search medicine...">
+
+                        <button type="submit" class="search-btn">Search</button>
+                        <a th:href="@{/sell-billing}" class="clear-search-btn">Clear</a>
+                    </div>
+                </form>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Generic</th>
+                            <th>Category</th>
+                            <th>Batch</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="medicineTableBody">
+                        <tr th:if="${#lists.isEmpty(medicines)}">
+                            <td colspan="9" class="empty-table">No medicine found</td>
+                        </tr>
+
+                        <tr th:each="medicine : ${medicines}"
+                            th:class="${medicine.quantity > 0 and medicine.medicineStatus.name() == 'AVAILABLE'} ? 'medicine-row' : 'medicine-row disabled-row'">
+
+                            <td>
+                                <strong th:text="${medicine.medicineName}">Medicine</strong>
+                                <small th:text="${medicine.manufacturer}">Company</small>
+                            </td>
+
+                            <td th:text="${medicine.genericName != null ? medicine.genericName : '-'}">Generic</td>
+                            <td th:text="${medicine.category != null ? medicine.category : '-'}">Category</td>
+                            <td th:text="${medicine.batchNo != null ? medicine.batchNo : '-'}">Batch</td>
+
+                            <td>
+                                <span th:text="${medicine.quantity}">0</span> pcs
+                            </td>
+
+                            <td>
+                                ৳<span th:text="${medicine.sellingPrice}">0.00</span>
+                            </td>
+
+                            <td th:text="${medicine.expiryDate != null ? medicine.expiryDate : '-'}">Expiry</td>
+
+                            <td>
+                                <span th:if="${medicine.quantity <= 0}" class="stock-badge out">
+                                    Out of Stock
+                                </span>
+
+                                <span th:if="${medicine.quantity > 0 and medicine.quantity <= medicine.reorderLevel}" class="stock-badge low">
+                                    Low Stock
+                                </span>
+
+                                <span th:if="${medicine.quantity > medicine.reorderLevel}" class="stock-badge available">
+                                    Available
+                                </span>
+                            </td>
+
+                            <td>
+                                <a th:if="${medicine.quantity > 0 and medicine.medicineStatus.name() == 'AVAILABLE'}"
+                                   th:href="@{/sell-billing(selectedMedicineId=${medicine.id}, keyword=${keyword})}"
+                                   class="select-table-btn">
+                                    Select
+                                </a>
+
+                                <button th:if="${medicine.quantity <= 0 or medicine.medicineStatus.name() != 'AVAILABLE'}"
+                                        type="button"
+                                        class="select-table-btn"
+                                        disabled>
+                                    Select
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cart Table -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Selected Medicines</h2>
+                    <p>Medicines added for current customer bill.</p>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="cartTableBody">
+                        <tr th:if="${#lists.isEmpty(billingCart.items)}">
+                            <td colspan="5" class="empty-table">No medicine added yet</td>
+                        </tr>
+
+                        <tr th:each="item : ${billingCart.items}">
+                            <td>
+                                <strong th:text="${item.medicineName}">Medicine</strong>
+                                <small>
+                                    Batch:
+                                    <span th:text="${item.batchNo}">Batch</span>
+                                </small>
+                            </td>
+
+                            <td>
+                                <span th:text="${item.quantity}">0</span> pcs
+                            </td>
+
+                            <td>
+                                ৳<span th:text="${item.price}">0.00</span>
+                            </td>
+
+                            <td>
+                                ৳<span th:text="${item.total}">0.00</span>
+                            </td>
+
+                            <td>
+                                <form th:action="@{/sell-billing/cart/remove/{id}(id=${item.medicineId})}" method="post">
+                                    <button type="submit" class="remove-btn">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="cart-bottom">
+                    <h3>
+                        Total Amount:
+                        <span id="cartTotal">
+                            ৳<span th:text="${cartTotal}">0.00</span>
+                        </span>
+                    </h3>
+
+                    <form th:action="@{/sell-billing/finish}" method="post">
+                        <button type="submit" class="finish-btn">Finish</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="panel-card customer-card" id="customerCard" th:if="${billingCart.customerBoxOpen}">
+                <div class="panel-header">
+                    <h2>Customer Information</h2>
+                    <p>Enter customer details before making bill.</p>
+                </div>
+
+                <form th:action="@{/sell-billing/make-bill}" th:object="${customerBillRequest}" method="post">
+                    <div class="customer-form">
+                        <div class="input-group">
+                            <label for="customerName">Customer Name *</label>
+                            <input type="text"
+                                   id="customerName"
+                                   th:field="*{customerName}"
+                                   placeholder="Enter customer name"
+                                   required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="customerPhone">Phone Number *</label>
+                            <input type="text"
+                                   id="customerPhone"
+                                   th:field="*{customerPhone}"
+                                   placeholder="Enter phone number"
+                                   required>
+                        </div>
+
+                        <button type="submit" class="make-bill-btn">Make Bill</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Right Side Bill Preview -->
+        <div class="right-section">
+
+            <div class="bill-preview" id="billPreview">
+                <div class="empty-bill" th:if="${billingCart.pendingBill == null}">
+                    <h2>Bill Preview</h2>
+                    <p>After making bill, invoice will show here.</p>
+                </div>
+
+                <div class="bill-paper" id="printArea" th:if="${billingCart.pendingBill != null}">
+
+                    <div class="bill-top">
+                        <img th:src="@{/logo.png}" alt="Logo">
+                        <div>
+                            <h2>Pharmacy Management System</h2>
+                            <p>Professional Medicine Store</p>
+                        </div>
+                    </div>
+
+                    <div class="bill-title">
+                        <h3>Sales Invoice</h3>
+                    </div>
+
+                    <div class="bill-info">
+                        <div>
+                            <p>
+                                <strong>Bill No:</strong>
+                                <span th:text="${billingCart.pendingBill.invoiceNo}">INV-000</span>
+                            </p>
+                            <p>
+                                <strong>Customer:</strong>
+                                <span th:text="${billingCart.pendingBill.customerName}">Customer Name</span>
+                            </p>
+                            <p>
+                                <strong>Phone:</strong>
+                                <span th:text="${billingCart.pendingBill.customerPhone}">Phone</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <p><strong>Date & Time:</strong></p>
+                            <p th:text="${#temporals.format(billingCart.pendingBill.dateTime, 'dd MMM yyyy, hh:mm a')}">
+                                Date Time
+                            </p>
+                        </div>
+                    </div>
+
+                    <table class="bill-table">
+                        <thead>
+                        <tr>
+                            <th>SL</th>
+                            <th>Medicine</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="item, stat : ${billingCart.pendingBill.items}">
+                            <td th:text="${stat.count}">1</td>
+
+                            <td>
+                                <strong th:text="${item.medicineName}">Medicine Name</strong><br>
+                                <small>
+                                    Batch:
+                                    <span th:text="${item.batchNo}">Batch</span>
+                                </small>
+                            </td>
+
+                            <td th:text="${item.quantity}">1</td>
+
+                            <td>
+                                ৳<span th:text="${item.price}">0.00</span>
+                            </td>
+
+                            <td>
+                                ৳<span th:text="${item.total}">0.00</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="bill-total">
+                        <span>Grand Total</span>
+                        <strong>
+                            ৳<span th:text="${billingCart.pendingBill.total}">0.00</span>
+                        </strong>
+                    </div>
+
+                    <div class="bill-footer">
+                        <p>Thank you for purchasing from us.</p>
+                        <small>This is a computer generated invoice.</small>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bill-action-buttons" id="billActionButtons" th:if="${billingCart.pendingBill != null}">
+                <form th:action="@{/sell-billing/cancel}" method="post">
+                    <button type="submit" class="cancel-bill-btn">Cancel Bill</button>
+                </form>
+
+                <form th:action="@{/sell-billing/confirm}" method="post">
+                    <button type="submit" class="confirm-bill-btn">Confirm Bill</button>
+                </form>
+            </div>
+
+            <form th:if="${confirmedSaleId != null}"
+                  th:action="@{/invoice/{id}(id=${confirmedSaleId})}"
+                  method="get">
+                <button type="submit" class="print-btn">
+                    Print Bill
+                </button>
+            </form>
+
+            <button th:if="${confirmedSaleId == null}"
+                    class="print-btn"
+                    disabled>
+                Print Bill
+            </button>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

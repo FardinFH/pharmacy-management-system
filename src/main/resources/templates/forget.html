@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/forget.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="forget-wrapper">
+
+    <div class="forget-card">
+
+        <div class="logo-box">
+            <img th:src="@{/logo.png}" alt="Pharmacy Management System Logo">
+        </div>
+
+        <div class="forget-header">
+            <h2>Reset Password</h2>
+            <p>Enter your admin username to reset your password.</p>
+        </div>
+
+        <form id="resetForm" method="post">
+
+            <input type="hidden"
+                   th:if="${_csrf != null}"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <div class="input-group">
+                <label for="username">Admin Username</label>
+                <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter admin username"
+                        th:value="${username}"
+                        th:readonly="${verifiedUsername != null}"
+                        required
+                >
+            </div>
+
+            <button
+                    type="submit"
+                    class="verify-btn"
+                    th:formaction="@{/forgot-password/verify}">
+                Verify Username
+            </button>
+
+            <p id="message"
+               class="message success"
+               th:if="${successMessage != null}"
+               th:text="${successMessage}">
+            </p>
+
+            <p id="message"
+               class="message error"
+               th:if="${errorMessage != null}"
+               th:text="${errorMessage}">
+            </p>
+
+            <div class="input-group">
+                <label for="newPassword">New Password</label>
+                <input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        placeholder="Enter new password"
+                        th:disabled="${verifiedUsername == null}"
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Confirm new password"
+                        th:disabled="${verifiedUsername == null}"
+                >
+            </div>
+
+            <button
+                    type="submit"
+                    class="reset-btn"
+                    id="resetBtn"
+                    th:formaction="@{/forgot-password/reset}"
+                    th:disabled="${verifiedUsername == null}">
+                Reset Password
+            </button>
+
+            <div class="back-login">
+                <a th:href="@{/login}">Back to Login</a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

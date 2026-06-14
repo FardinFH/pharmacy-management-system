@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Admin dashboard for Pharmacy Management System.">
+    <meta name="keywords" content="pharmacy dashboard, medicine stock, pharmacy sales">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/dashboard.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <img th:src="@{/logo.png}" alt="Logo">
+        <div>
+            <h2>Pharmacy Management System</h2>
+            <span>Admin Dashboard</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li><a th:href="@{/dashboard}" class="active">Home</a></li>
+        <li><a th:href="@{/add-medicine}">Add Medicine</a></li>
+        <li><a th:href="@{/stock}">Stock</a></li>
+        <li><a th:href="@{/sell-billing}">Sell & Billing</a></li>
+        <li><a th:href="@{/sell}">Selling History</a></li>
+    </ul>
+
+    <form th:action="@{/logout}" method="post">
+        <input type="hidden"
+               th:if="${_csrf != null}"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main class="dashboard-container">
+
+    <section class="welcome-section">
+        <div>
+            <h1>
+                Welcome Back,
+                <span th:text="${adminName}">Admin</span>
+            </h1>
+            <p>Manage your pharmacy medicines, stock, sales and billing from one place.</p>
+        </div>
+
+        <div class="date-box">
+            <span>Today</span>
+            <h3 th:text="${todayDate}">01 Jan 2026</h3>
+        </div>
+    </section>
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+            <div class="card-icon medicine-icon">💊</div>
+            <div>
+                <h3>Total Medicine</h3>
+                <p th:text="${totalMedicine}">0</p>
+                <span>All medicine records</span>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="card-icon stock-icon">⚠️</div>
+            <div>
+                <h3>Low Stock</h3>
+                <p th:text="${lowStockCount}">0</p>
+                <span>Need restock soon</span>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="card-icon sell-icon">৳</div>
+            <div>
+                <h3>Monthly Total Sell</h3>
+                <p th:text="'৳' + ${#numbers.formatDecimal(monthlyTotalSell, 1, 2)}">৳0.00</p>
+                <span>This month's confirmed sales</span>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="content-grid">
+
+        <div class="dashboard-box">
+            <div class="box-header">
+                <h2>Low Stock Medicines</h2>
+                <a th:href="@{/stock}">View Stock</a>
+            </div>
+
+            <div class="low-stock-list">
+
+                <div class="stock-item"
+                     th:if="${lowStockMedicines == null or #lists.isEmpty(lowStockMedicines)}">
+                    <div>
+                        <h4>No Low Stock Medicine</h4>
+                        <span>All medicines have enough stock</span>
+                    </div>
+                    <strong>OK</strong>
+                </div>
+
+                <div class="stock-item"
+                     th:each="medicine : ${lowStockMedicines}"
+                     th:classappend="${medicine.quantity <= 5} ? ' danger' : ' warning'">
+                    <div>
+                        <h4 th:text="${medicine.medicineName}">Medicine Name</h4>
+                        <span>
+                            Batch:
+                            <span th:text="${medicine.batchNo}">B001</span>
+                            |
+                            Alert:
+                            <span th:text="${medicine.reorderLevel}">10</span>
+                            pcs
+                        </span>
+                    </div>
+
+                    <strong>
+                        <span th:text="${medicine.quantity}">0</span>
+                        pcs
+                    </strong>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="dashboard-box">
+            <div class="box-header">
+                <h2>Quick Actions</h2>
+            </div>
+
+            <div class="quick-actions">
+                <a th:href="@{/add-medicine}" class="action-card">
+                    <span>➕</span>
+                    <div>
+                        <h4>Add Medicine</h4>
+                        <p>Add new medicine item</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/stock}" class="action-card">
+                    <span>📦</span>
+                    <div>
+                        <h4>Check Stock</h4>
+                        <p>View and update stock</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/sell-billing}" class="action-card">
+                    <span>🧾</span>
+                    <div>
+                        <h4>Sell & Billing</h4>
+                        <p>Create customer bill</p>
+                    </div>
+                </a>
+
+                <a th:href="@{/sell}" class="action-card">
+                    <span>📑</span>
+                    <div>
+                        <h4>Selling History</h4>
+                        <p>View previous bills</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="notice-section">
+        <div class="notice-card">
+            <h3>Reminder</h3>
+            <p>Check expiry dates regularly and restock low quantity medicines before they run out.</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>Today’s Target</h3>
+            <p>Keep all stock records updated after every sale and purchase.</p>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

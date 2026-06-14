@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Add new medicine to Pharmacy Management System with category, manufacturer, stock, price, expiry date and supplier information.">
+    <meta name="keywords" content="pharmacy management system, add medicine, medicine stock, pharmacy inventory">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Medicine | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/add-medicine.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <img th:src="@{/logo.png}" alt="Pharmacy Management System Logo">
+        <div>
+            <h2>Pharmacy Management System</h2>
+            <span>Add Medicine</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li><a th:href="@{/dashboard}">Home</a></li>
+        <li><a th:href="@{/add-medicine}" class="active">Add Medicine</a></li>
+        <li><a th:href="@{/stock}">Stock</a></li>
+        <li><a th:href="@{/sell-billing}">Sell & Billing</a></li>
+        <li><a th:href="@{/sell}">Sell History</a></li>
+    </ul>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main class="page-container">
+
+    <section class="page-header">
+        <div>
+            <h1>Add New Medicine</h1>
+            <p>Enter medicine details carefully to keep your pharmacy stock updated.</p>
+        </div>
+
+        <a th:href="@{/stock}" class="stock-btn">View Stock</a>
+    </section>
+
+    <section class="form-card">
+
+        <div class="form-title">
+            <h2>Medicine Information</h2>
+            <p>Fields marked with * are required.</p>
+        </div>
+
+        <p th:if="${successMessage}" th:text="${successMessage}" class="message success"></p>
+        <p th:if="${errorMessage}" th:text="${errorMessage}" class="message error"></p>
+
+        <form th:action="@{/add-medicine}" th:object="${medicineRequest}" method="post">
+
+            <div class="form-grid">
+
+                <div class="input-group">
+                    <label for="medicineName">Medicine Name *</label>
+                    <input
+                            type="text"
+                            id="medicineName"
+                            th:field="*{medicineName}"
+                            placeholder="Example: Napa 500mg"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('medicineName')}" th:errors="*{medicineName}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="genericName">Generic Name *</label>
+                    <input
+                            type="text"
+                            id="genericName"
+                            th:field="*{genericName}"
+                            placeholder="Example: Paracetamol"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('genericName')}" th:errors="*{genericName}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="category">Category *</label>
+                    <select id="category" th:field="*{category}" required>
+                        <option value="">Select Category</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Capsule">Capsule</option>
+                        <option value="Syrup">Syrup</option>
+                        <option value="Injection">Injection</option>
+                        <option value="Drops">Drops</option>
+                        <option value="Cream/Ointment">Cream/Ointment</option>
+                        <option value="Inhaler">Inhaler</option>
+                        <option value="Powder">Powder</option>
+                        <option value="Saline">Saline</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="manufacturer">Company / Manufacturer *</label>
+                    <input
+                            type="text"
+                            id="manufacturer"
+                            th:field="*{manufacturer}"
+                            placeholder="Example: Square Pharma"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('manufacturer')}" th:errors="*{manufacturer}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="batchNo">Batch Number *</label>
+                    <input
+                            type="text"
+                            id="batchNo"
+                            th:field="*{batchNo}"
+                            placeholder="Example: NP-203"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('batchNo')}" th:errors="*{batchNo}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="quantity">Quantity / Stock *</label>
+                    <input
+                            type="number"
+                            id="quantity"
+                            th:field="*{quantity}"
+                            placeholder="Example: 100"
+                            min="1"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="reorderLevel">Low Stock Alert Quantity *</label>
+                    <input
+                            type="number"
+                            id="reorderLevel"
+                            th:field="*{reorderLevel}"
+                            placeholder="Example: 10"
+                            min="1"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('reorderLevel')}" th:errors="*{reorderLevel}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="sellingPrice">Selling Price Per Piece *</label>
+                    <input
+                            type="number"
+                            id="sellingPrice"
+                            th:field="*{sellingPrice}"
+                            placeholder="Example: 3.00"
+                            min="0"
+                            step="0.01"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('sellingPrice')}" th:errors="*{sellingPrice}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="expiryDate">Expiry Date *</label>
+                    <input
+                            type="date"
+                            id="expiryDate"
+                            th:field="*{expiryDate}"
+                            required>
+                    <small class="field-error" th:if="${#fields.hasErrors('expiryDate')}" th:errors="*{expiryDate}"></small>
+                </div>
+
+                <div class="input-group">
+                    <label for="supplier">Supplier Name</label>
+                    <input
+                            type="text"
+                            id="supplier"
+                            th:field="*{supplier}"
+                            placeholder="Example: ABC Medical Supplier">
+                </div>
+
+                <div class="input-group">
+                    <label for="rackNo">Shelf / Rack Number</label>
+                    <input
+                            type="text"
+                            id="rackNo"
+                            th:field="*{rackNo}"
+                            placeholder="Example: Rack A-2">
+                </div>
+
+                <div class="input-group">
+                    <label for="medicineStatus">Medicine Status *</label>
+                    <select id="medicineStatus" th:field="*{medicineStatus}" required>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="NOT_AVAILABLE">Not Available</option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('medicineStatus')}" th:errors="*{medicineStatus}"></small>
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="description">Medicine Description / Note</label>
+                    <textarea
+                            id="description"
+                            th:field="*{description}"
+                            placeholder="Write any additional note about this medicine..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="form-buttons">
+                <button type="reset" class="clear-btn">Clear Form</button>
+                <button type="submit" class="save-btn">Save Medicine</button>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+</body>
+</html>

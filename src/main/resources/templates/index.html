@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="description" content="Secure admin login page for Pharmacy Management System. Manage medicines, stock, sales and billing.">
+    <meta name="keywords" content="Pharmacy Management System, Admin Login, Medicine Management, Stock Management, Pharmacy Billing">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Login | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/login.css}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <div class="left-panel">
+        <div class="brand-box">
+            <img th:src="@{/logo.png}"
+                 src="/logo.png"
+                 alt="Pharmacy Management System Logo"
+                 class="logo">
+
+            <h1>Pharmacy<br>Management System</h1>
+            <p>
+                Secure admin panel for managing medicines, stock, sales and billing.
+            </p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="login-card">
+
+            <div class="login-header">
+                <h2>Admin Login</h2>
+                <p>Welcome back! Please login to continue.</p>
+            </div>
+
+            <form th:action="@{/login}" method="post" autocomplete="on">
+
+                <!-- Spring Security CSRF Token -->
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}">
+
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Enter admin username"
+                            autocomplete="username"
+                            required
+                            autofocus
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter password"
+                            autocomplete="current-password"
+                            required
+                    >
+                </div>
+
+                <p th:if="${param.error}" class="error-message">
+                    Invalid username or password!
+                </p>
+
+                <p th:if="${param.logout}" class="success-message">
+                    You have been logged out successfully.
+                </p>
+
+                <div class="login-options">
+                    <label>
+                        <input type="checkbox" name="remember-me">
+                        Remember me
+                    </label>
+
+                    <a th:href="@{/forgot-password}">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="footer-text">
+                <p>© 2026 Pharmacy Management System</p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

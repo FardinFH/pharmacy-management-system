@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Medicine stock page for Pharmacy Management System. View, search, update and delete medicine stock information.">
+    <meta name="keywords" content="pharmacy stock, medicine stock, pharmacy inventory, medicine management">
+    <meta name="author" content="Pharmacy Management System">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Stock | Pharmacy Management System</title>
+
+    <link rel="stylesheet" th:href="@{/stock.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <img th:src="@{/logo.png}" alt="Logo">
+        <div>
+            <h2>Pharmacy Management System</h2>
+            <span>Stock</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li><a th:href="@{/dashboard}">Home</a></li>
+        <li><a th:href="@{/add-medicine}">Add Medicine</a></li>
+        <li><a th:href="@{/stock}" class="active">Stock</a></li>
+        <li><a th:href="@{/sell-billing}">Sell & Billing</a></li>
+        <li><a th:href="@{/sell}">Selling History</a></li>
+    </ul>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</nav>
+
+<main class="page-container">
+
+    <section class="page-header">
+        <div>
+            <h1>Medicine Stock</h1>
+            <p>View, update and delete all medicine information from your stock.</p>
+        </div>
+
+        <a th:href="@{/add-medicine}" class="add-btn">+ Add Medicine</a>
+    </section>
+
+    <p th:if="${successMessage}" th:text="${successMessage}" class="message success"></p>
+    <p th:if="${errorMessage}" th:text="${errorMessage}" class="message error"></p>
+
+    <section class="stock-summary">
+        <div class="summary-card">
+            <span>💊</span>
+            <div>
+                <h3>Total Medicine</h3>
+                <p th:text="${totalMedicine}">0</p>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <span>⚠️</span>
+            <div>
+                <h3>Low Stock</h3>
+                <p th:text="${lowStockCount}">0</p>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <span>⏳</span>
+            <div>
+                <h3>Near Expiry</h3>
+                <p th:text="${nearExpiryCount}">0</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="search-section">
+        <form th:action="@{/stock}" method="get" class="search-form">
+            <input
+                    type="text"
+                    name="keyword"
+                    th:value="${keyword}"
+                    placeholder="Search by medicine name, generic name, company, batch number...">
+
+            <button type="submit" class="search-btn">Search</button>
+            <a th:href="@{/stock}" class="clear-search-btn">Clear</a>
+        </form>
+    </section>
+
+    <section class="medicine-grid" th:if="${!#lists.isEmpty(medicines)}">
+
+        <div class="medicine-card" th:each="medicine : ${medicines}">
+
+            <div class="medicine-card-top">
+                <div>
+                    <h2 th:text="${medicine.medicineName}">Medicine Name</h2>
+                    <p th:text="${medicine.genericName}">Generic Name</p>
+                </div>
+
+                <span th:if="${medicine.quantity <= 0}" class="status-badge out-stock">
+                    Out of Stock
+                </span>
+
+                <span th:if="${medicine.quantity > 0 and medicine.quantity <= medicine.reorderLevel}" class="status-badge low-stock">
+                    Low Stock
+                </span>
+
+                <span th:if="${medicine.quantity > medicine.reorderLevel}" class="status-badge in-stock">
+                    In Stock
+                </span>
+            </div>
+
+            <div class="medicine-meta">
+                <span th:text="${medicine.category}">Category</span>
+
+                <span th:if="${medicine.medicineStatus.name() == 'AVAILABLE'}">Available</span>
+                <span th:if="${medicine.medicineStatus.name() == 'NOT_AVAILABLE'}">Not Available</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <small>Company</small>
+                    <strong th:text="${medicine.manufacturer}">Company</strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Batch No</small>
+                    <strong th:text="${medicine.batchNo}">Batch</strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Stock</small>
+                    <strong>
+                        <span th:text="${medicine.quantity}">0</span> pcs
+                    </strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Low Alert</small>
+                    <strong>
+                        <span th:text="${medicine.reorderLevel}">0</span> pcs
+                    </strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Price / pcs</small>
+                    <strong>
+                        ৳<span th:text="${medicine.sellingPrice}">0.00</span>
+                    </strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Expiry</small>
+                    <strong th:text="${medicine.expiryDate}">2029-01-01</strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Supplier</small>
+                    <strong th:text="${medicine.supplier != null ? medicine.supplier : 'N/A'}">N/A</strong>
+                </div>
+
+                <div class="info-item">
+                    <small>Shelf/Rack</small>
+                    <strong th:text="${medicine.rackNo != null ? medicine.rackNo : 'N/A'}">N/A</strong>
+                </div>
+            </div>
+
+            <div class="expiry-line expired"
+                 th:if="${medicine.expiryDate.isBefore(today) or medicine.expiryDate.isEqual(today)}">
+                Expiry Status: Expired
+            </div>
+
+            <div class="expiry-line near"
+                 th:if="${medicine.expiryDate.isAfter(today) and !medicine.expiryDate.isAfter(nearExpiryDate)}">
+                Expiry Status: Near Expiry
+            </div>
+
+            <div class="expiry-line safe"
+                 th:if="${medicine.expiryDate.isAfter(nearExpiryDate)}">
+                Expiry Status: Safe
+            </div>
+
+            <div class="medicine-note">
+                <strong>Note:</strong>
+                <span th:text="${medicine.description != null ? medicine.description : 'No note added'}">
+                    No note added
+                </span>
+            </div>
+
+            <div class="card-actions">
+                <a class="edit-btn" th:href="@{/medicines/edit/{id}(id=${medicine.id})}">
+                    Edit
+                </a>
+
+                <form th:action="@{/medicines/delete/{id}(id=${medicine.id})}" method="post">
+                    <button type="submit" class="delete-btn">
+                        Delete
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+    </section>
+
+    <div class="empty-box" th:if="${#lists.isEmpty(medicines)}">
+        <h2>No Medicine Found</h2>
+        <p>Please add medicine first from Add Medicine page.</p>
+        <a th:href="@{/add-medicine}">Add Medicine</a>
+    </div>
+
+</main>
+
+</body>
+</html>
