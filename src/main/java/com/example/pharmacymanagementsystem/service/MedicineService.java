@@ -143,4 +143,20 @@ public class MedicineService {
 
         return value.trim();
     }
+    @Transactional
+    public boolean deleteOrDeactivateMedicine(Long id) {
+        Medicine medicine = medicineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Medicine not found."));
+
+        try {
+            medicineRepository.delete(medicine);
+            medicineRepository.flush();
+            return true; // permanently deleted
+        } catch (Exception exception) {
+            medicine.setMedicineStatus(com.example.pharmacymanagementsystem.model.MedicineStatus.NOT_AVAILABLE);
+            medicine.setQuantity(0);
+            medicineRepository.save(medicine);
+            return false; // deactivated because sales history exists
+        }
+    }
 }

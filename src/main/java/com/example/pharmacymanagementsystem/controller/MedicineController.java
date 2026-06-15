@@ -6,6 +6,7 @@ import com.example.pharmacymanagementsystem.model.MedicineStatus;
 import com.example.pharmacymanagementsystem.service.MedicineService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,7 +22,6 @@ public class MedicineController {
 
     private final MedicineService medicineService;
 
-    // Add Medicine Page
     @GetMapping("/add-medicine")
     public String addMedicinePage(Model model) {
         if (!model.containsAttribute("medicineRequest")) {
@@ -32,7 +32,6 @@ public class MedicineController {
         return "add-medicine";
     }
 
-    // Save Medicine
     @PostMapping("/add-medicine")
     public String saveMedicine(
             @Valid @ModelAttribute("medicineRequest") MedicineRequest medicineRequest,
@@ -54,10 +53,13 @@ public class MedicineController {
             model.addAttribute("medicineStatuses", MedicineStatus.values());
             model.addAttribute("errorMessage", exception.getMessage());
             return "add-medicine";
+        } catch (Exception exception) {
+            model.addAttribute("medicineStatuses", MedicineStatus.values());
+            model.addAttribute("errorMessage", "Something went wrong while adding medicine.");
+            return "add-medicine";
         }
     }
 
-    // Stock Page
     @GetMapping("/stock")
     public String stockPage(
             @RequestParam(value = "keyword", required = false) String keyword,
@@ -78,7 +80,6 @@ public class MedicineController {
         return "stock";
     }
 
-    // Edit Medicine Page
     @GetMapping("/medicines/edit/{id}")
     public String editMedicinePage(
             @PathVariable Long id,
@@ -96,10 +97,12 @@ public class MedicineController {
         } catch (IllegalArgumentException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
             return "redirect:/stock";
+        } catch (Exception exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Something went wrong while opening edit page.");
+            return "redirect:/stock";
         }
     }
 
-    // Update Medicine
     @PostMapping("/medicines/update/{id}")
     public String updateMedicine(
             @PathVariable Long id,
@@ -124,20 +127,41 @@ public class MedicineController {
             model.addAttribute("medicineStatuses", MedicineStatus.values());
             model.addAttribute("errorMessage", exception.getMessage());
             return "edit-medicine";
+        } catch (Exception exception) {
+            model.addAttribute("medicineId", id);
+            model.addAttribute("medicineStatuses", MedicineStatus.values());
+            model.addAttribute("errorMessage", "Something went wrong while updating medicine.");
+            return "edit-medicine";
         }
     }
 
-    // Delete Medicine
     @PostMapping("/medicines/delete/{id}")
     public String deleteMedicine(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            medicineService.deleteMedicine(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Medicine deleted successfully!");
+            boolean deleted = medicineService.deleteOrDeactivateMedicine(id);
+
+            if (deleted) {
+                redirectAttributes.addFlashAttribute(
+                        "successMessage",
+                        "Medicine deleted successfully!"
+                );
+            } else {
+                redirectAttributes.addFlashAttribute(
+                        "successMessage",
+                        "Medicine is used in sales history, so it has been deactivated instead of deleted."
+                );
+            }
+
         } catch (IllegalArgumentException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        } catch (Exception exception) {
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "Something went wrong while deleting medicine."
+            );
         }
 
         return "redirect:/stock";
